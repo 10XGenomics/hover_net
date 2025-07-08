@@ -1,4 +1,6 @@
 from collections import OrderedDict
+import os
+os.environ["OPENCV_IO_MAX_IMAGE_PIXELS"] = str(pow(2,40))
 import cv2
 import numpy as np
 from skimage import img_as_ubyte
@@ -7,12 +9,15 @@ import re
 import subprocess
 
 import openslide
+from PIL import Image
+
+Image.MAX_IMAGE_PIXELS = None
 
 
 class FileHandler(object):
     def __init__(self):
         """The handler is responsible for storing the processed data, parsing
-        the metadata from original file, and reading it from storage. 
+        the metadata from original file, and reading it from storage.
         """
         self.metadata = {
             ("available_mag", None),
@@ -37,12 +42,12 @@ class FileHandler(object):
         """Must call `prepare_reading` before hand.
 
         Args:
-            coords (tuple): (dims_x, dims_y), 
-                          top left coordinates of image region at selected 
-                          `read_mag` or `read_mpp` from `prepare_reading` 
+            coords (tuple): (dims_x, dims_y),
+                          top left coordinates of image region at selected
+                          `read_mag` or `read_mpp` from `prepare_reading`
             size (tuple): (dims_x, dims_y)
-                          width and height of image region at selected 
-                          `read_mag` or `read_mpp` from `prepare_reading`       
+                          width and height of image region at selected
+                          `read_mag` or `read_mpp` from `prepare_reading`
 
         """
         raise NotImplementedError
@@ -102,10 +107,10 @@ class FileHandler(object):
 class OpenSlideHandler(FileHandler):
     """Class for handling OpenSlide supported whole-slide images."""
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, pixel_size, magnifications):
         """file_path (string): path to single whole-slide image."""
         super().__init__()
-        self.file_ptr = openslide.OpenSlide(file_path)  # load OpenSlide object
+        self.file_ptr = openslide.open_slide(file_path)  # load OpenSlide object
         self.metadata = self.__load_metadata()
 
         # only used for cases where the read magnification is different from
@@ -116,15 +121,16 @@ class OpenSlideHandler(FileHandler):
         metadata = {}
 
         wsi_properties = self.file_ptr.properties
-        level_0_magnification = wsi_properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER]
+        print(wsi_properties)
+        level_0_magnification = 20
         level_0_magnification = float(level_0_magnification)
 
         downsample_level = self.file_ptr.level_downsamples
         magnification_level = [level_0_magnification / lv for lv in downsample_level]
 
         mpp = [
-            wsi_properties[openslide.PROPERTY_NAME_MPP_X],
-            wsi_properties[openslide.PROPERTY_NAME_MPP_Y],
+            0.27,
+            0.27,
         ]
         mpp = np.array(mpp)
 
@@ -135,18 +141,19 @@ class OpenSlideHandler(FileHandler):
             ("mpp  ", mpp),
             ("base_shape", np.array(self.file_ptr.dimensions)),
         ]
+        print(metadata)
         return OrderedDict(metadata)
 
     def read_region(self, coords, size):
         """Must call `prepare_reading` before hand.
 
         Args:
-            coords (tuple): (dims_x, dims_y), 
-                          top left coordinates of image region at selected 
-                          `read_mag` or `read_mpp` from `prepare_reading` 
+            coords (tuple): (dims_x, dims_y),
+                          top left coordinates of image region at selected
+                          `read_mag` or `read_mpp` from `prepare_reading`
             size (tuple): (dims_x, dims_y)
-                          width and height of image region at selected 
-                          `read_mag` or `read_mpp` from `prepare_reading`       
+                          width and height of image region at selected
+                          `read_mag` or `read_mpp` from `prepare_reading`
 
         """
         if self.image_ptr is None:
@@ -190,15 +197,20 @@ class OpenSlideHandler(FileHandler):
         return wsi_img
 
 
-def get_file_handler(path, backend):
+def get_file_handler(path, backend, pixel_size=None, magnifications=None):
     if backend in [
-            '.svs', '.tif', 
-            '.vms', '.vmu', '.ndpi',
-            '.scn', '.mrxs', '.tiff',
-            '.svslide',
-            '.bif',
-            ]:
-        return OpenSlideHandler(path)
+        ".svs",
+        ".tif",
+        ".vms",
+        ".vmu",
+        ".ndpi",
+        ".scn",
+        ".mrxs",
+        ".tiff",
+        ".svslide",
+        ".bif",
+    ]:
+        print(path)
+        return OpenSlideHandler(path, pixel_size, magnifications)
     else:
         assert False, "Unknown WSI format `%s`" % backend
-

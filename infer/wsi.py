@@ -36,10 +36,13 @@ from misc.utils import (
 )
 from misc.wsi_handler import get_file_handler
 
+from PIL import Image
+
+Image.MAX_IMAGE_PIXELS = None
+
 from . import base
 
 thread_lock = Lock()
-
 
 ####
 def _init_worker_child(lock_):
@@ -475,8 +478,8 @@ class InferManager(base.InferManager):
         self.wsi_proc_shape = np.array(self.wsi_proc_shape[::-1])  # to Y, X
 
         if msk_path is not None and os.path.isfile(msk_path):
-            self.wsi_mask = cv2.imread(msk_path)
-            self.wsi_mask = cv2.cvtColor(self.wsi_mask, cv2.COLOR_BGR2GRAY)
+            self.wsi_mask = np.array(Image.open(msk_path))
+            # self.wsi_mask = cv2.cvtColor(self.wsi_mask, cv2.COLOR_BGR2GRAY)
             self.wsi_mask[self.wsi_mask > 0] = 1
         else:
             log_info(

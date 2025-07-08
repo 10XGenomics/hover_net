@@ -69,6 +69,8 @@ options:
     --tile_shape=<n>        Shape of tiles for processing. [default: 2048]
     --save_thumb            To save thumb. [default: False]
     --save_mask             To save mask. [default: False]
+    --magnifications=<f>    List of magnifications present in the WSI. [default: None]
+    --pixel_size=<f>        Pixel size of the WSI in microns. [default: None]
 """
 
 import torch
@@ -136,7 +138,7 @@ if __name__ == '__main__':
 
     # ***
     run_args = {
-        'batch_size' : int(args['batch_size']) * nr_gpus,
+        'batch_size' : int(args['batch_size']) * max(nr_gpus, 1),
 
         'nr_inference_workers' : int(args['nr_inference_workers']),
         'nr_post_proc_workers' : int(args['nr_post_proc_workers']),

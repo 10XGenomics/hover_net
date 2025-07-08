@@ -385,4 +385,3 @@ class InferManager(base.InferManager):
                         file_path = proc_callback(future.result())
                         log_info("Done Assembling %s" % file_path)
         return
-
