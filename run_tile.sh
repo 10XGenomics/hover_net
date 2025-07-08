@@ -3,7 +3,7 @@ python run_infer.py \
     --type_info_path=type_info.json \
     --batch_size=64 \
     --model_mode=fast \
-    --model_path=/mnt/deck/1/govinda.kamath/hovernet_fast_pannuke_type_tf2pytorch.tar \
+    --model_path=/mnt/deck/1/govinda.kamath/hovernet_fast_monusac_type_tf2pytorch.tar \
     --nr_inference_workers=8 \
     --nr_post_proc_workers=16 \
     tile \

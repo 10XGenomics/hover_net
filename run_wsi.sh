@@ -3,7 +3,7 @@ python run_infer.py \
     --type_info_path=type_info.json \
     --batch_size=64 \
     --model_mode=fast \
-    --model_path=../hovernet_fast_pannuke_type_tf2pytorch.tar \
+    --model_path=../hovernet_fast_monusac_type_tf2pytorch.tar \
     wsi \
     --input_dir=/mnt/deck/1/govinda.kamath/AZ_S2_48872_01_tiff \
     --output_dir=/mnt/deck/1/govinda.kamath/AZ_S2_48872_01_hovernet \
