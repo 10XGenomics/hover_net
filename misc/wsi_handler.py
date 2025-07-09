@@ -107,37 +107,44 @@ class FileHandler(object):
 class OpenSlideHandler(FileHandler):
     """Class for handling OpenSlide supported whole-slide images."""
 
-    def __init__(self, file_path, pixel_size, magnifications):
+    def __init__(self, file_path, magnification, pixel_size):
         """file_path (string): path to single whole-slide image."""
         super().__init__()
         self.file_ptr = openslide.open_slide(file_path)  # load OpenSlide object
-        self.metadata = self.__load_metadata()
+        self.metadata = self.__load_metadata(magnification, pixel_size)
 
         # only used for cases where the read magnification is different from
         self.image_ptr = None  # the existing modes of the read file
         self.read_level = None
 
-    def __load_metadata(self):
+    def __load_metadata(self, magnification, pixel_size):
         metadata = {}
 
         wsi_properties = self.file_ptr.properties
         print(wsi_properties)
-        level_0_magnification = 20
-        level_0_magnification = float(level_0_magnification)
+        if magnification:
+            level_0_magnification = float(magnification)
+        else:
+            level_0_magnification = float(wsi_properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
 
         downsample_level = self.file_ptr.level_downsamples
         magnification_level = [level_0_magnification / lv for lv in downsample_level]
 
-        mpp = [
-            0.27,
-            0.27,
-        ]
-        mpp = np.array(mpp)
+        if pixel_size:
+            mpp = np.array([
+                pixel_size,
+                pixel_size,
+            ])
+        else:
+            mpp = np.array([
+                wsi_properties[openslide.PROPERTY_NAME_MPP_X],
+                wsi_properties[openslide.PROPERTY_NAME_MPP_Y],
+            ])
 
         metadata = [
             ("available_mag", magnification_level),  # highest to lowest mag
             ("base_mag", magnification_level[0]),
-            ("vendor", wsi_properties[openslide.PROPERTY_NAME_VENDOR]),
+            ("vendor", wsi_properties.get(openslide.PROPERTY_NAME_VENDOR, "generic slide")),
             ("mpp  ", mpp),
             ("base_shape", np.array(self.file_ptr.dimensions)),
         ]
@@ -197,7 +204,7 @@ class OpenSlideHandler(FileHandler):
         return wsi_img
 
 
-def get_file_handler(path, backend, pixel_size=None, magnifications=None):
+def get_file_handler(path, backend, magnification=None, pixel_size=None):
     if backend in [
         ".svs",
         ".tif",
@@ -211,6 +218,6 @@ def get_file_handler(path, backend, pixel_size=None, magnifications=None):
         ".bif",
     ]:
         print(path)
-        return OpenSlideHandler(path, pixel_size, magnifications)
+        return OpenSlideHandler(path, magnification=magnification, pixel_size=pixel_size)
     else:
         assert False, "Unknown WSI format `%s`" % backend
