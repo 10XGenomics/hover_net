@@ -36,10 +36,13 @@ from misc.utils import (
 )
 from misc.wsi_handler import get_file_handler
 
+from PIL import Image
+
+Image.MAX_IMAGE_PIXELS = None
+
 from . import base
 
 thread_lock = Lock()
-
 
 ####
 def _init_worker_child(lock_):
@@ -446,7 +449,7 @@ class InferManager(base.InferManager):
         self.patch_output_shape = [self.patch_output_shape, self.patch_output_shape]
         return
 
-    def process_single_file(self, wsi_path, msk_path, output_dir):
+    def process_single_file(self, wsi_path, msk_path, output_dir, magnification=None, pixel_size=None):
         """Process a single whole-slide image and save the results.
 
         Args:
@@ -467,7 +470,7 @@ class InferManager(base.InferManager):
         wsi_name = path_obj.stem
 
         start = time.perf_counter()
-        self.wsi_handler = get_file_handler(wsi_path, backend=wsi_ext)
+        self.wsi_handler = get_file_handler(wsi_path, backend=wsi_ext, magnification=magnification, pixel_size=pixel_size)
         self.wsi_proc_shape = self.wsi_handler.get_dimensions(self.proc_mag)
         self.wsi_handler.prepare_reading(
             read_mag=self.proc_mag, cache_path="%s/src_wsi.npy" % self.cache_path
@@ -475,8 +478,8 @@ class InferManager(base.InferManager):
         self.wsi_proc_shape = np.array(self.wsi_proc_shape[::-1])  # to Y, X
 
         if msk_path is not None and os.path.isfile(msk_path):
-            self.wsi_mask = cv2.imread(msk_path)
-            self.wsi_mask = cv2.cvtColor(self.wsi_mask, cv2.COLOR_BGR2GRAY)
+            self.wsi_mask = np.array(Image.open(msk_path))
+            # self.wsi_mask = cv2.cvtColor(self.wsi_mask, cv2.COLOR_BGR2GRAY)
             self.wsi_mask[self.wsi_mask > 0] = 1
         else:
             log_info(
@@ -745,7 +748,7 @@ class InferManager(base.InferManager):
                 continue
             try:
                 log_info("Process: %s" % wsi_base_name)
-                self.process_single_file(wsi_path, msk_path, self.output_dir)
+                self.process_single_file(wsi_path, msk_path, self.output_dir, magnification=run_args["magnification"], pixel_size=run_args["pixel_size"])
                 log_info("Finish")
             except Exception:
                 logging.exception("Crash")

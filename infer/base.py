@@ -67,7 +67,7 @@ class InferManager(object):
 
         net.load_state_dict(saved_state_dict, strict=True)
         net = torch.nn.DataParallel(net)
-        net = net.to("cuda")
+        # net = net.to("cuda")
 
         module_lib = import_module("models.hovernet.run_desc")
         run_step = getattr(module_lib, "infer_step")
@@ -88,7 +88,8 @@ class InferManager(object):
                 new_inst_info[info_name] = info_value
             new_dict[int(inst_id)] = new_inst_info
 
-        json_dict = {"mag": mag, "nuc": new_dict}  # to sync the format protocol
+        # to sync the format protocol
+        json_dict = {"mag": mag, "nuc": new_dict}
         with open(path, "w") as handle:
             json.dump(json_dict, handle)
         return new_dict

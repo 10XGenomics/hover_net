@@ -18,9 +18,10 @@ Links to the checkpoints can be found in the inference description below.
 
 ## Set Up Environment
 
-```
+```bash
 conda env create -f environment.yml
 conda activate hovernet
+pip install requirements.txt
 pip install torch==1.6.0 torchvision==0.7.0
 ```
 
@@ -267,6 +268,3 @@ BibTex entry: <br />
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
 Note that the PanNuke dataset is licensed under [Attribution-NonCommercial-ShareAlike 4.0 International](http://creativecommons.org/licenses/by-nc-sa/4.0/), therefore the derived weights for HoVer-Net are also shared under the same license. Please consider the implications of using the weights under this license on your work and it's licensing. 
-
-
-

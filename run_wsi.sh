@@ -1,15 +1,15 @@
 python run_infer.py \
---gpu='0,1' \
---nr_types=6 \
---type_info_path=type_info.json \
---batch_size=64 \
---model_mode=fast \
---model_path=../pretrained/hovernet_fast_pannuke_type_tf2pytorch.tar \
---nr_inference_workers=8 \
---nr_post_proc_workers=16 \
-wsi \
---input_dir=dataset/sample_wsis/wsi/ \
---output_dir=dataset/sample_wsis/out/ \
---input_mask_dir=dataset/sample_wsis/msk/ \
---save_thumb \
---save_mask
+    --nr_types=5 \
+    --type_info_path=type_info.json \
+    --batch_size=64 \
+    --model_mode=fast \
+    --model_path=/path/to/hovernet_fast_monusac_type_tf2pytorch.tar \
+    wsi \
+    --input_dir=/path/to/directory/containing/tiff \
+    --output_dir=/path/to/output/directory \
+    --input_mask_dir=/path/to/directory/containing/binary_mask_png \
+    --save_thumb \
+    --save_mask \
+    --proc_mag=20 \
+    --magnification=20 \
+    --pixel_size=0.27

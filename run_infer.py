@@ -54,7 +54,7 @@ usage:
     wsi (--input_dir=<path>) (--output_dir=<path>) [--proc_mag=<n>]\
         [--cache_path=<path>] [--input_mask_dir=<path>] \
         [--ambiguous_size=<n>] [--chunk_shape=<n>] [--tile_shape=<n>] \
-        [--save_thumb] [--save_mask]
+        [--save_thumb] [--save_mask] [--magnification=<f>] [--pixel_size=<f>]
     
 options:
     --input_dir=<path>      Path to input data directory. Assumes the files are not nested within directory.
@@ -69,6 +69,8 @@ options:
     --tile_shape=<n>        Shape of tiles for processing. [default: 2048]
     --save_thumb            To save thumb. [default: False]
     --save_mask             To save mask. [default: False]
+    --magnification=<f>     Base level magnification in the WSI. [default: ]
+    --pixel_size=<f>        Pixel size of the WSI in microns. [default: ]
 """
 
 import torch
@@ -136,7 +138,7 @@ if __name__ == '__main__':
 
     # ***
     run_args = {
-        'batch_size' : int(args['batch_size']) * nr_gpus,
+        'batch_size' : int(args['batch_size']) * max(nr_gpus, 1),
 
         'nr_inference_workers' : int(args['nr_inference_workers']),
         'nr_post_proc_workers' : int(args['nr_post_proc_workers']),
@@ -173,6 +175,8 @@ if __name__ == '__main__':
             'tile_shape'     : int(sub_args['tile_shape']),
             'save_thumb'     : sub_args['save_thumb'],
             'save_mask'      : sub_args['save_mask'],
+            'magnification' : float(sub_args['magnification']) if sub_args['magnification']  else None,
+            'pixel_size' : float(sub_args['pixel_size']) if sub_args['pixel_size'] else None,
         })
     # ***
     
